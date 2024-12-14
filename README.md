@@ -1,4 +1,5 @@
 Heirloom-Sort.py
+
 Authors: Geoff Bell (FalseTragedian), Alex Bridges, Ryan David Simpson
 
 This is a Python script to use Mistral AI to sort a given directory of images into subdirectories.
