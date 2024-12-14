@@ -1,4 +1,4 @@
-"""
+'''
 Heirloom-Sort.py
 Authors: Geoff Bell, Ryan David Simpson, Alex Bridges
 
@@ -7,7 +7,7 @@ unlabeled images into directories based on various criteria, by using Mistral
 AI image recognition.
 Currently, it just puts each picture into a folder named for a brief
 description of the picture's content.
-"""
+'''
 
 #Import packages.
 import os
@@ -20,13 +20,15 @@ from time import sleep
 
 #Taken from the Mistral documentation
 def encode_image(image_path):
-    """This function takes a local filesystem path to an image as input, and converts the image to a base64-encoded binary stream.
+    '''This function takes a local filesystem path to an image as input, and
+    converts the image to a base64-encoded binary stream.
     This is the format used to upload the image to the LLM.
-    Input: image_path: A string or path-like object containing the full path to the image file.
+    Input: image_path: A string or path-like object containing the full path
+        to the image file.
     Returns: The image data encoded with base64.
-    """
+    '''
     print('Encoding to base64...')
-    """Encode the image to base64."""
+    #Encode the image to base64.
     try:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
@@ -38,16 +40,35 @@ def encode_image(image_path):
         return None
 
 def saveRename(savePath = '.', filename = '0.png', image = None):
-
+    '''This function saves an already loaded image to a new location
+    and filename.
+    If a file with the new name already exists, it will add a '0' to the
+    new filename and recursively call itself.
+    Inputs: savePath: a String or Path-like object containing the full path
+            to the directory where the file should be placed.
+            filename: The new filename under which to save the file.
+            image: pillow Image object containing the image data.
+    Returns: none.
+    '''
+    #Check if file with that name already exists
     if not os.path.exists(savePath + filename):
+        #Save the file
         image.save(fp = savePath + filename)
+        #Tell the user what's going on
         print("Saving: " + savePath + filename)
     else:
+        #Split off the file extension from the file
         filenox, ext = os.path.splitext(filename)
+        #Insert a zero at the end of the filename and reassemble
         filename = filenox + '0' + ext
+        #Recursive call
         saveRename(savePath, filename, image)
 
 def getChatResponse(image = None):
+    '''This should be edited to take multiple prompts for different uses.
+    For now, it only uses the single prompt.
+    '''
+    #First we encode the image.
     base64_image = encode_image(image)
     #This is also from Mistral docs.
     messages = [
@@ -71,34 +92,61 @@ def getChatResponse(image = None):
         model='pixtral-12b-2409',
         messages=messages
     )
+    #This is to prevent rate errors from the Mistral serer.
     sleep(2)
 
     # Return response as a string
     return str(chat_response.choices[0].message.content)
 
 def sortImage(path = '.', filename = '0.png'):
+    '''This should be edited to take multiple prompts for different uses.
+    '''
     try:
+        #Report which file we're opening
         print(path + filename)
+        #Open the file
         image = Image.open(path + filename)
+        #Call Mistral, ask it to identify the image content
         newFolder = getChatResponse(path + filename)
+        #Use that response to create a new save path for the image
         savePath = (path + newFolder + '\\')
+        #Check if the new folder already exists
         if not os.path.exists(savePath):
+            #If not, create it
             os.makedirs(savePath)
+        #Function call to save the file in the new location
         saveRename(savePath, filename, image)
+        #Close the image to cleanup memory
+        image.close()
+    except PIL.UnidentifiedImageError:
+        #This should trigger if a non-image file is encountered
+        print('File is not an image, skipping.')
     except Exception as e:
+        #General exception handling: 
         image = None
         print('Exception in sortImage: ' + str(e))
 
-
-path = 'C:\\Temp\\Pictures\\'
-
+#Preferably  should find a way to do this without asking for the key each time.
+#For personal use you could just replace the prompt with your own API key.
 mistralKey = input('Please copy and paste Mistral AI API key here:')
 os.environ['MISTRAL_API_KEY'] = mistralKey
 client = Mistral(api_key = mistralKey)
 
+#Placeholder. Final version should take an input for the folder to target.
+#Maybe default to '.' so the script can be dropped straight into the folder.
+path = 'C:\\Temp\\Pictures\\'
+
+#Needed: an option to delete the original files.
+#Needed: a list of different sorting categories. To include "Custom prompt".
+
+#Main loop here.
+#Creates a list of files in the target directory.
 fileList = os.listdir(path)
+#Iterates through each item in the list.
 for filename in fileList:
+    #Checks if the file is a directory. If so, skips it.
     if os.path.isfile(path + filename):
+        #Copies the file to a new folder.
         sortImage(path, filename)
 
-print('Finished.')
+print('Directory ' + path + ' finished.')
