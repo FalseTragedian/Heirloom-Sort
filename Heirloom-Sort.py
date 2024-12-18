@@ -11,6 +11,7 @@ description of the picture's content.
 
 #Import packages.
 import os
+import PIL
 from PIL import Image
 from llama_index.multi_modal_llms.mistralai import MistralAIMultiModal
 from pathlib import Path
@@ -64,7 +65,8 @@ def saveRename(savePath = '.', filename = '0.png', image = None):
         #Recursive call
         saveRename(savePath, filename, image)
 
-def getChatResponse(image = None):
+#Changed this to accept user specifiable prompt. -- Alex Bridges
+def getChatResponse(prompt = "Describe this image in 1 to 3 words.", image = None):
     '''This should be edited to take multiple prompts for different uses.
     For now, it only uses the single prompt.
     '''
@@ -77,7 +79,7 @@ def getChatResponse(image = None):
             "content": [
                 {
                     "type": "text",
-                    "text": "Describe this image in 1 to 3 words."
+                    "text": prompt
                 },
                 {
                     "type": "image_url",
@@ -98,7 +100,7 @@ def getChatResponse(image = None):
     # Return response as a string
     return str(chat_response.choices[0].message.content)
 
-def sortImage(path = '.', filename = '0.png'):
+def sortImage(path = '.', filename = '0.png', deleteOriginalFiles = 'N', userPrompt = 'Describe this image in 1-3 words.'):
     '''This should be edited to take multiple prompts for different uses.
     '''
     try:
@@ -107,7 +109,7 @@ def sortImage(path = '.', filename = '0.png'):
         #Open the file
         image = Image.open(path + filename)
         #Call Mistral, ask it to identify the image content
-        newFolder = getChatResponse(path + filename)
+        newFolder = getChatResponse(userPrompt, path + filename)
         #Use that response to create a new save path for the image
         savePath = (path + newFolder + '\\')
         #Check if the new folder already exists
@@ -118,6 +120,10 @@ def sortImage(path = '.', filename = '0.png'):
         saveRename(savePath, filename, image)
         #Close the image to cleanup memory
         image.close()
+        if deleteOriginalFiles == 'Y':
+            #Deletes original file if user selects that option.
+            print("Deleting original file: " + path + filename)
+            os.remove(path + filename)
     except PIL.UnidentifiedImageError:
         #This should trigger if a non-image file is encountered
         print('File is not an image, skipping.')
@@ -126,27 +132,61 @@ def sortImage(path = '.', filename = '0.png'):
         image = None
         print('Exception in sortImage: ' + str(e))
 
-#Preferably  should find a way to do this without asking for the key each time.
-#For personal use you could just replace the prompt with your own API key.
-mistralKey = input('Please copy and paste Mistral AI API key here:')
+#Check if a text file named "api_key.txt" exists in the same directory from which the script was launched.
+if os.path.exists(os.getcwd() + '/api_key.txt'):
+    #If so, open the file and read it as the key.
+    keyFile = open('api_key.txt', 'r')
+    mistralKey = keyFile.read()
+else:
+    #If not, take the key as a manual input.
+    mistralKey = input('Please copy and paste Mistral AI API key here:')
+    #Then create the text file and write the key to it.
+    keyFile = open('api_key.txt', 'w')
+    keyFile.write(mistralKey)
+#Store the key in OS environment variables (I don't know why but this is volatile).
 os.environ['MISTRAL_API_KEY'] = mistralKey
+#Open the Mistral client with the API key.
 client = Mistral(api_key = mistralKey)
+#Close the text file.
+keyFile.close()
 
-#Placeholder. Final version should take an input for the folder to target.
+# User interface that accepts custom category and packages that into a prompt to be fed to Mistral. -- Alex Bridges
+category = input('Please select a method of sorting: \n1. By location \n2. By number of people present \n3. By activity \n4. Custom category\n')
+userPrompt = ""
+if category == '1' or "location" in category.lower():
+    userPrompt = "Describe the location depicted in this image in 1 word."
+elif category == '2' or "number" in category.lower():
+    userPrompt = "Using only a number, answer the following question: How many people are in this picture.\nRespond with ONLY a number, no letters or punctuation are allowed."
+elif category == '3' or "activity" in category.lower():
+    userPrompt = "Describe this image based on the activity taking place in 1 to 3 words."
+else:
+    userPrompt = "Describe this imaged based on "
+    userPrompt += input('Enter a custom category:')
+    userPrompt += " in 1 to 3 words."
+
+#Placeholder. Final version should take an input for the folder to target. DONE -- Alex Bridges
 #Maybe default to '.' so the script can be dropped straight into the folder.
 path = 'C:\\Temp\\Pictures\\'
+customFileDestination = input('Would you like to specify a custom file of images to be sorted? If so, type Y and press enter. \nOtherwise, type N to default to C:\\Temp\\Pictures.\n')
+if customFileDestination == 'Y':
+    path = input('Enter the file path:')
 
-#Needed: an option to delete the original files.
-#Needed: a list of different sorting categories. To include "Custom prompt".
+#Needed: an option to delete the original files. DONE - Alex Bridges
+#Needed: a list of different sorting categories. To include "Custom prompt". DONE -- Alex Bridges
+
+deleteOriginalFiles = input('Would you like to delete the original files? If so, type Y and press enter. \nOtherwise, type N and press enter.\n')
 
 #Main loop here.
 #Creates a list of files in the target directory.
+#Moved file deletion steps to sortImage(). --Geoff Bell
 fileList = os.listdir(path)
 #Iterates through each item in the list.
 for filename in fileList:
     #Checks if the file is a directory. If so, skips it.
     if os.path.isfile(path + filename):
         #Copies the file to a new folder.
-        sortImage(path, filename)
+        sortImage(path, filename, deleteOriginalFiles.upper(), userPrompt)
 
 print('Directory ' + path + ' finished.')
+print('Program will close in 10 seconds. Goodbye.')
+sleep(10)
