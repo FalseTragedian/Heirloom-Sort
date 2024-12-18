@@ -154,11 +154,11 @@ keyFile.close()
 category = input('Please select a method of sorting: \n1. By location \n2. By number of people present \n3. By activity \n4. Custom category\n')
 userPrompt = ""
 if category == '1' or "location" in category.lower():
-    userPrompt = "Describe the location depicted in this image in 1 word."
+    userPrompt = "Fit this image into one of these categories based on the location depicted; either Indoor or, if outdoor, specify the general location without using the word 'outdoor' (i.e. City, Park, Beach, Mountains, etc.). Do not include any other text in your response."
 elif category == '2' or "number" in category.lower():
-    userPrompt = "Using only a number, answer the following question: How many people are in this picture.\nRespond with ONLY a number, no letters or punctuation are allowed."
+    userPrompt = "Fit this image into one of these categories based on the number of people present in the foreground: 0 people, 1-3 people, 4-6 people, 7+ people. Do not include any other text in your response."
 elif category == '3' or "activity" in category.lower():
-    userPrompt = "Describe this image based on the activity taking place in 1 to 3 words."
+    userPrompt = "Fit this image into a category based on the activity taking place: some examples include: Vacation, Party, Sports, School, etc. Do not include any other text in your response."
 else:
     userPrompt = "Describe this imaged based on "
     userPrompt += input('Enter a custom category:')
