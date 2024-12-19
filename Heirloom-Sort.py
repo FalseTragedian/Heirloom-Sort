@@ -166,8 +166,8 @@ else:
 
 #Placeholder. Final version should take an input for the folder to target. DONE -- Alex Bridges
 #Maybe default to '.' so the script can be dropped straight into the folder.
-path = 'C:\\Temp\\Pictures\\'
-customFileDestination = input('Would you like to specify a custom file of images to be sorted? If so, type Y and press enter. \nOtherwise, type N to default to C:\\Temp\\Pictures.\n')
+path = str(os.getcwd() + '\\')
+customFileDestination = input('Would you like to specify a custom file of images to be sorted? If so, type Y and press enter. \nOtherwise, type N or leave blank to default to the current working directory.\n')
 if customFileDestination == 'Y':
     path = input('Enter the file path:')
 
