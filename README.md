@@ -8,7 +8,7 @@ This is a final project for an "Intro to Artificial Intelligence" class. Don't e
 
 Takes input of a directory name, offers a list of pre-engineered prompts or the option to create your own, and sorts images within the directory into folders using AI identification.
 
-Default target directory is C:\Temp\Pictures. Recommend copying your pictures to this directory for testing purposes, don't run this on the original pictures. It should work but I claim no liability if something goes wrong.
+By default it targets the current working directory. Recommend copying your pictures to a new directory for testing purposes, don't run this on the original pictures. It should work but I claim no liability if something goes wrong.
 
 The prompt designs are still a work in progress. If you would like to create your own prompt, remember to give precise and clear instructions like you're speaking to a child who is also a robot. :)
 
