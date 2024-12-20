@@ -28,7 +28,6 @@ def encode_image(image_path):
         to the image file.
     Returns: The image data encoded with base64.
     '''
-    print('Encoding to base64...')
     #Encode the image to base64.
     try:
         with open(image_path, "rb") as image_file:
@@ -120,7 +119,7 @@ def sortImage(path = '.', filename = '0.png', deleteOriginalFiles = 'N', userPro
         saveRename(savePath, filename, image)
         #Close the image to cleanup memory
         image.close()
-        if deleteOriginalFiles == 'Y':
+        if deleteOriginalFiles.upper() == 'Y':
             #Deletes original file if user selects that option.
             print("Deleting original file: " + path + filename)
             os.remove(path + filename)
@@ -168,7 +167,7 @@ else:
 #Maybe default to '.' so the script can be dropped straight into the folder.
 path = str(os.getcwd() + '\\')
 customFileDestination = input('Would you like to specify a custom file of images to be sorted? If so, type Y and press enter. \nOtherwise, type N or leave blank to default to the current working directory.\n')
-if customFileDestination == 'Y':
+if customFileDestination.upper() == 'Y':
     path = input('Enter the file path:')
 
 #Needed: an option to delete the original files. DONE - Alex Bridges
